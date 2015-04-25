@@ -3,6 +3,8 @@ webfs
 
 Implementation of a basic subset of node's fs v0.12 api for the web.
 
+[![Build Status](https://travis-ci.org/gaye/webfs.png?branch=master)](https://travis-ci.org/gaye/webfs)
+
 ### Caveats
 
 #### Invocation style
