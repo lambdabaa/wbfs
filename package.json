@@ -1,0 +1,24 @@
+{
+  "name": "webfs",
+  "version": "0.1.0",
+  "author": "Gareth Aye [:gaye] <gaye@mozilla.com>",
+  "description": "Implementation of node's fs v0.12 api for the web",
+  "license": "MPL-2.0",
+
+  "devDependencies": {
+    "browserify": "9.0.8",
+    "chai": "2.2.0",
+    "co": "4.5.2",
+    "eventemitter2": "0.4.14",
+    "mocha": "2.2.4"
+  },
+
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gaye/webfs.git"
+  },
+
+  "scripts": {
+    "test": "make test"
+  }
+}
