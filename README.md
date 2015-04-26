@@ -1,7 +1,8 @@
 webfs
 =====
 
-Implementation of a basic subset of node's fs v0.12 api for the web with some [caveats](#caveats).
+Implementation of a basic subset of node's fs v0.12 api for the web with
+some [caveats](#caveats).
 
 [![Build Status](https://travis-ci.org/gaye/webfs.png?branch=master)](https://travis-ci.org/gaye/webfs)
 
@@ -57,9 +58,9 @@ co(function*() {
 
 ### Caveats
 
-This is only known to work in Firefox currently since support for es6
-features such as promises, generators, arrow functions, and template
-strings is assumed.
+This is only known to work in Firefox currently since support for
+indexedDB as well as es6 features such as promises, generators, proxies,
+arrow functions, destructuring, and template strings is assumed.
 
 #### Invocation style
 
