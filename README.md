@@ -15,7 +15,7 @@ var co = require('co');
 var fs = require('webfs');
 
 co(function*() {
-  yield webfs.mkdir('/poems');
+  yield fs.mkdir('/poems');
 
   var haiku = `An old silent pond...
                A frog jumps into the pond,
@@ -43,16 +43,60 @@ co(function*() {
 
   // Delete the frog poem.
   yield fs.unlink('/haikus/frog_haiku.txt');
-  list = yield webfs.readdir('/haikus');
+  list = yield fs.readdir('/haikus');
   console.log(list);  // []
 
   // Delete the haikus directory.
   yield fs.rmdir('/haikus');
   try {
-    yield webfs.readdir('/haikus');
+    yield fs.readdir('/haikus');
   } catch (error) {
     console.log(error.message);  // /haikus: No such file or directory
   }
+});
+
+// Or without co + generators...
+
+fs.mkdir('poems')
+.then(() => {
+  // Write the haiku to a file.
+  return fs.writeFile('/poems/basho_matsuo.txt', haiku);
+})
+.then(() => {
+  // Oops! The author forgot to sign it.
+  return fs.appendFile('/poems/basho_matsuo.txt', ' -Basho');
+})
+.then(() => {
+  // Rename the poem file.
+  return fs.rename('/poems/basho_matsuo.txt', '/poems/frog_haiku.txt');
+})
+.then(() => {
+  // Spring cleaning! Rename the poems directory to 'haikus'.
+  return fs.rename('/poems', '/haikus');
+})
+.then(() => {
+  // Read the frog poem file.
+  return fs.readdir('/haikus');
+})
+.then(list => {
+  console.log(list);  // ['frog_haiku.txt']
+
+  // Delete the frog poem.
+  return fs.unlink('/haikus/frog_haiku.txt');
+})
+.then(() => {
+  return fs.readdir('/haikus');
+})
+.then(list => {
+  console.log(list);  // []
+
+  // Delete the haikus directory.
+  returrn fs.rmdir('/haikus');
+})
+.then(() => {
+  fs.readdir('/haikus').catch(error => {
+    console.log(error.message);  // /haikus: No such file or directory
+  });
 });
 ```
 
