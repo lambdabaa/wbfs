@@ -65,12 +65,85 @@ suite('webfs', function() {
     });
   });
 
+  suite('#unlink', function() {
+    test('file', function() {
+      return webfs.writeFile('/foo.txt', 'bar')
+      .then(() => webfs.unlink('/foo.txt'))
+      .then(() => {
+        return expect(webfs.readFile('/foo.txt')).to.eventually.be.rejectedWith(
+          Error,
+          '/foo.txt: No such file or directory'
+        );
+      });
+    });
+
+    test('dir', function() {
+      return webfs.mkdir('/foo').then(() => {
+        return expect(webfs.unlink('/foo')).to.be.rejectedWith(
+          Error,
+          'Cannot remove /foo: Is a directory'
+        );
+      });
+    });
+  });
+
+  suite('#rmdir', function() {
+    test('file', function() {
+      return webfs.writeFile('/foo', 'bar').then(() => {
+        return expect(webfs.rmdir('/foo')).to.be.rejectedWith(
+          Error,
+          'Cannot remove /foo: Not a directory'
+        );
+      });
+    });
+
+    test('dir', function() {
+      return webfs.mkdir('/foo')
+      .then(() => webfs.rmdir('/foo'))
+      .then(() => {
+        return expect(webfs.readdir('/foo')).to.be.rejectedWith(
+          Error,
+          '/foo: No such file or directory'
+        );
+      });
+    });
+
+    test('nonempty dir', function() {
+      return webfs.mkdir('/foo')
+      .then(() => webfs.writeFile('/foo/bar.txt', 'baz'))
+      .then(() => {
+        return expect(webfs.rmdir('/foo')).to.be.rejectedWith(
+          Error,
+          'Cannot remove /foo: Directory not empty'
+        );
+      });
+    });
+  });
+
   suite('#mkdir', function() {
     test('file already exists', function() {
       return webfs.writeFile('/foo', 'bar').then(() => {
         return expect(webfs.mkdir('/foo')).to.be.rejectedWith(
           Error,
           'Cannot create directory /foo: File exists'
+        );
+      });
+    });
+
+    test('should not allow making dir if parent does not exist', function() {
+      var request = webfs.mkdir('/foo/bar.txt', 'baz');
+      return expect(request).to.eventually.be.rejectedWith(
+        Error,
+        '/foo: No such file or directory'
+      );
+    });
+
+    test('should not allow making dir beneath file', function() {
+      return webfs.writeFile('/foo', '0').then(() => {
+        var request = webfs.mkdir('/foo/bar');
+        return expect(request).to.eventually.be.rejectedWith(
+          Error,
+          '/foo: Not a directory'
         );
       });
     });
@@ -129,11 +202,31 @@ suite('webfs', function() {
 
   suite('#writeFile', function() {
     test('should not allow overwriting a directory', function() {
-      var request = webfs.writeFile('/', 'foobar');
+      return webfs.mkdir('/foo').then(() => {
+        var request = webfs.writeFile('/foo', 'foobar');
+        return expect(request).to.eventually.be.rejectedWith(
+          Error,
+          '/foo: Is a directory'
+        );
+      });
+    });
+
+    test('should not allow writing file to non-existing dir', function() {
+      var request = webfs.writeFile('/foo/bar.txt', 'baz');
       return expect(request).to.eventually.be.rejectedWith(
         Error,
-        '/: Is a directory'
+        '/foo: No such file or directory'
       );
+    });
+
+    test('should not allow writing file beneath file', function() {
+      return webfs.writeFile('/foo', '0').then(() => {
+        var request = webfs.writeFile('/foo/bar', '1');
+        return expect(request).to.eventually.be.rejectedWith(
+          Error,
+          '/foo: Not a directory'
+        );
+      });
     });
 
     test('should add the appropriate node to indexeddb', function() {
