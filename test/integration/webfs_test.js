@@ -11,6 +11,71 @@ suite('webfs', function() {
     return webfs.shutdown();
   });
 
+  suite('#rename', function() {
+    test('file does not exist', function() {
+      var request = webfs.rename('/foo.txt', '/bar.txt');
+      return expect(request).to.eventually.be.rejectedWith(
+        Error,
+        '/foo.txt: No such file or directory'
+      );
+    });
+
+    test('simple file', function() {
+      return webfs.writeFile('/file.txt', 'yo')
+      .then(() => webfs.rename('/file.txt', '/yo.txt'))
+      .then(() => expect(webfs.readFile('/yo.txt')).to.eventually.equal('yo'))
+      .then(() => {
+        var request = webfs.readFile('/file.txt');
+        return expect(request).to.eventually.be.rejectedWith(
+          Error,
+          '/file.txt: No such file or directory'
+        );
+      });
+    });
+
+    test('directory without children', function() {
+      return webfs.mkdir('/foo')
+      .then(() => webfs.rename('/foo', '/bar'))
+      .then(() => expect(webfs.readdir('/bar')).to.eventually.deep.equal([]))
+      .then(() => {
+        return expect(webfs.readdir('/foo')).to.eventually.be.rejectedWith(
+          Error,
+          '/foo: No such file or directory'
+        );
+      });
+    });
+
+    test('directory with children', function() {
+      return webfs.mkdir('/foo')
+      .then(() => webfs.writeFile('/foo/bar.txt', 'bar'))
+      .then(() => webfs.writeFile('/foo/baz.txt', 'baz'))
+      .then(() => webfs.rename('/foo', '/foo2'))
+      .then(() => {
+        return expect(webfs.readdir('/foo2')).to.eventually.deep.equal([
+          'bar.txt',
+          'baz.txt'
+        ]);
+      })
+      .then(() => {
+        return expect(webfs.readdir('/foo')).to.be.rejectedWith(
+          Error,
+          '/foo: No such file or directory'
+        );
+      });
+    });
+  });
+
+  suite('#mkdir', function() {
+    test('file already exists', function() {
+      return webfs.writeFile('/foo', 'bar').then(() => {
+        return expect(webfs.mkdir('/foo')).to.be.rejectedWith(
+          Error,
+          'Cannot create directory /foo: File exists'
+        );
+      });
+    });
+  });
+
   suite('#readdir', function() {
     test('directory does not exist', function() {
       return expect(webfs.readdir('/random')).to.eventually.be.rejectedWith(

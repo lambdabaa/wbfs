@@ -40,30 +40,29 @@ var fspath = require('./fspath');
 var idb = require('./idb');
 var indexGetAll = require('./index_get_all');
 
-exports.rename = function(oldPath, newPath, store) {
+exports.rename = function(oldPath, newPath) {
   debug(`rename ${oldPath} ${newPath}`);
-  if (!store) {
-    var db = idb.db;
-    var trans = db.transaction('nodes', 'readwrite');
-    store = trans.objectStore('nodes');
-  }
-
   return co(function*() {
-    var node = yield createDOMPromise(store.get(oldPath));
+    var node = yield createDOMPromise(store('readonly').get(oldPath));
     if (!node) {
       return Promise.reject(new Error(`${oldPath}: No such file or directory`));
     }
 
+    // You can't change the key of an existing object so we
+    // have to delete() and add() instead of update()
+    yield createDOMPromise(store().delete(node.path));
+
     node.directory = fspath.getDirectory(newPath);
     node.path = newPath;
-    yield createDOMPromise(store.put(node));
+    yield createDOMPromise(store().add(node));
 
     if (node.nodeType !== 'directory') {
+      debug(`rename ${oldPath} ${newPath}: Done`);
       return;
     }
 
     // We also have to move our children.
-    var children = yield indexGetAll(store.index('directory'), {
+    var children = yield indexGetAll(store('readonly').index('directory'), {
       range: IDBKeyRange.only(oldPath)
     });
 
@@ -71,10 +70,12 @@ exports.rename = function(oldPath, newPath, store) {
       yield Promise.all(
         children.map(child => {
           var newChildPath = fspath.newChildPath(child.path, oldPath, newPath);
-          return exports.rename(child.path, newChildPath, store);
+          return exports.rename(child.path, newChildPath);
         })
       );
     }
+
+    debug(`rename ${oldPath} ${newPath}: Done`);
   });
 };
 
@@ -126,7 +127,22 @@ exports.rmdir = function(path) {
  * Does not honor the 2nd, optional mode arg.
  */
 exports.mkdir = function(path) {
-  // TODO
+  debug(`mkdir ${path}`);
+  return co(function*() {
+    var node = yield createDOMPromise(store().get(path));
+    if (node) {
+      return Promise.reject(new Error(`Cannot create directory ${path}: File exists`));
+    }
+
+    var dir = {
+      path: path,
+      directory: fspath.getDirectory(path),
+      nodeType: 'directory'
+    };
+
+    yield createDOMPromise(store().add(dir));
+    debug(`mkdir ${path}: Done`);
+  });
 };
 
 exports.readdir = function(path) {
@@ -222,7 +238,6 @@ exports.appendFile = function(filename, data, options) {
 };
 
 exports.shutdown = function() {
-  debug('shutdown');
   idb.close();
 };
 
@@ -245,7 +260,8 @@ exports.getDirectory = function(path) {
     throw new Error('/ is the top-level directory');
   }
 
-  return path.substring(0, path.lastIndexOf('/'));
+  var lastSlashIndex = path.lastIndexOf('/');
+  return lastSlashIndex === 0 ? '/' : path.substring(0, lastSlashIndex);
 };
 
 exports.getFilename = function(filepath) {
@@ -296,7 +312,7 @@ exports.db = null;
 'use strict';
 module.exports = function indexGetAll(index, options) {
   var result = [];
-  var request = index.openCursor();
+  var request = index.openCursor(options.range);
 
   return new Promise((resolve, reject) => {
     request.onerror = reject;
