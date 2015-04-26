@@ -5,6 +5,8 @@ Implementation of a basic subset of node's fs v0.12 api for the web.
 
 [![Build Status](https://travis-ci.org/gaye/webfs.png?branch=master)](https://travis-ci.org/gaye/webfs)
 
+Run the integration tests [in your browser](https://gaye.github.io/webfs/test/integration/).
+
 ### Caveats
 
 This is only known to work in Firefox currently since support for es6
