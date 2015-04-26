@@ -242,4 +242,18 @@ suite('webfs', function() {
       .then(() => expect(webfs.readFile(filename)).to.eventually.equal('bar'));
     });
   });
+
+  suite('#appendFile', function() {
+    test('should create file if does not exist', function() {
+      return webfs.appendFile('/file.txt', 'foo').then(() => {
+        return expect(webfs.readFile('/file.txt')).to.eventually.equal('foo');
+      });
+    });
+
+    test('should append to file if already exists', function() {
+      return webfs.writeFile('/file.txt', 'foo')
+      .then(() => webfs.appendFile('/file.txt', 'bar'))
+      .then(() => expect(webfs.readFile('/file.txt')).to.eventually.equal('foobar'));
+    });
+  });
 });
