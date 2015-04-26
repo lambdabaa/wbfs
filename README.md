@@ -7,6 +7,10 @@ Implementation of a basic subset of node's fs v0.12 api for the web.
 
 ### Caveats
 
+This is only known to work in Firefox currently since support for es6
+features such as promises, generators, arrow functions, and template
+strings is assumed.
+
 #### Invocation style
 
 + No synchronous methods are implemented.

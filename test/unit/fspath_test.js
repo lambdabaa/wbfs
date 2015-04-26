@@ -6,6 +6,10 @@ suite('fspath', function() {
     expect(fspath.getDirectory('/path/to/exile')).to.equal('/path/to');
   });
 
+  test('#getFilename', function() {
+    expect(fspath.getFilename('/path/to/exile.md')).to.equal('exile.md');
+  });
+
   test('#newChildPath', function() {
     expect(
       fspath.newChildPath(
