@@ -106,7 +106,7 @@ fs.mkdir('poems')
   console.log(list);  // []
 
   // Delete the haikus directory.
-  returrn fs.rmdir('/haikus');
+  return fs.rmdir('/haikus');
 })
 .then(() => {
   fs.readdir('/haikus').catch(error => {
