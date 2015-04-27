@@ -137,8 +137,6 @@ arrow functions, destructuring, and template strings is assumed.
 
 + None of the lower-level methods like `truncate()`, `ftruncate()`, and
   `fsync()` are implemented.
-+ No methods related to file size are implemented (ie `truncate()` and
-  `ftruncate()`).
 + There are no buffers. The `write()`, `readFile()`, `writeFile()`, and
   `appendFile()` methods all coerce values to strings.
 + `createReadStream()`, `ReadStream`, `createWriteStream()`, and
