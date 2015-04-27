@@ -53,6 +53,21 @@ co(function*() {
   } catch (error) {
     console.log(error.message);  // /haikus: No such file or directory
   }
+
+  var watcher = fs.watch('/poems', { recursive: true });
+
+  watcher.on('change', details => {
+    console.log(details);  // { filename: '/poems/pi.txt' }
+  });
+
+  watcher.on('rename', details => {
+    console.log(details);  // { oldName: '/poems/pi.txt', newName: /poems/irrational.txt' }
+  });
+
+  yield fs.writeFile('/poems/pi.txt', '3.1415');
+  yield fs.rename('/poems/pi.txt', '/poems/irrational.txt');
+
+  watcher.close();
 });
 
 // Or without co + generators...
@@ -129,7 +144,3 @@ arrow functions, destructuring, and template strings is assumed.
 
 + `exists()` is not implemented since it is slated for deprecation in
   the nodejs api as of v0.12.
-
-#### FSWatcher
-
-+ `watch()` and `FSWatcher` are not implemented.
