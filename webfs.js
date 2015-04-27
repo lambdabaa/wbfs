@@ -95,14 +95,6 @@ exports.rename = function(oldPath, newPath) {
   });
 };
 
-exports.ftruncate = function(fd, len) {
-  // TODO
-};
-
-exports.truncate = function(path, len) {
-  // TODO
-};
-
 exports.stat = function(path) {
   // TODO
 };
@@ -225,10 +217,6 @@ exports.utimes = function(path, atime, mtime) {
 };
 
 exports.futimes = function(fd, atime, mtime) {
-  // TODO
-};
-
-exports.fsync = function(fd) {
   // TODO
 };
 

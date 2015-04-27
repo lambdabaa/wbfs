@@ -133,8 +133,12 @@ arrow functions, destructuring, and template strings is assumed.
 + Methods that take an optional `mode` argument in the nodejs api do not
   honor the `mode` (since there are no file permissions).
 
-#### Buffers and streams
+#### Low-level apis, buffers, and streams
 
++ None of the lower-level methods like `truncate()`, `ftruncate()`, and
+  `fsync()` are implemented.
++ No methods related to file size are implemented (ie `truncate()` and
+  `ftruncate()`).
 + There are no buffers. The `write()`, `readFile()`, `writeFile()`, and
   `appendFile()` methods all coerce values to strings.
 + `createReadStream()`, `ReadStream`, `createWriteStream()`, and
