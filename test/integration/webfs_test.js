@@ -256,4 +256,137 @@ suite('webfs', function() {
       .then(() => expect(webfs.readFile('/file.txt')).to.eventually.equal('foobar'));
     });
   });
+
+  suite('#watch', function() {
+    var fooWatcher, barWatcher, bazWatcher;
+
+    setup(function() {
+      return webfs.mkdir('/foo')
+      .then(() => webfs.writeFile('/foo/bar', 'bar'))
+      .then(() => webfs.mkdir('/baz'))
+      .then(() => {
+        fooWatcher = webfs.watch('/foo', { recursive: true });
+        barWatcher = webfs.watch('/foo/bar');
+        bazWatcher = webfs.watch('/baz');
+      });
+    });
+
+    teardown(function() {
+      fooWatcher.close();
+      barWatcher.close();
+      bazWatcher.close();
+    });
+
+    test('should return a webfs.FSWatcher', function() {
+      expect(fooWatcher).to.be.instanceOf(webfs.FSWatcher);
+    });
+
+    test('rmdir should notify dir watcher', function() {
+      var checkEvent = waitForEvent(bazWatcher, 'change').then(details => {
+        expect(details).to.deep.equal({ filename: '/baz' });
+      });
+
+      return webfs.rmdir('/baz').then(checkEvent);
+    });
+
+    test('rename should notify dir watchers', function() {
+      var checkEvent = waitForEvent(bazWatcher, 'rename').then(details => {
+        expect(details).to.deep.equal({ oldName: '/baz', newName: '/qux' });
+      });
+
+      return webfs.rename('/baz', '/qux').then(checkEvent);
+    });
+
+    test('rename should notify file and recursive dir watchers', function() {
+      var checkEvent = Promise.all([
+        waitForEvent(fooWatcher, 'rename'),
+        waitForEvent(barWatcher, 'rename')
+      ])
+      .then(results => {
+        expect(results[0]).to.deep.equal(results[1]);
+        expect(results[0]).to.deep.equal({
+          oldName: '/foo/bar',
+          newName: '/foo/qux'
+        });
+      });
+
+      return webfs.rename('/foo/bar', '/foo/qux').then(checkEvent);
+    });
+
+    test('mkdir should notify recursive dir watcher', function() {
+      var checkEvent = waitForEvent(fooWatcher, 'change').then(details => {
+        expect(details).to.deep.equal({ filename: '/foo/qux' });
+      });
+
+      return webfs.mkdir('/foo/qux').then(checkEvent);
+    });
+
+    test('rename dir should notify recursive dir watcher', function() {
+      var checkEvent = waitForEvent(fooWatcher, 'change').then(details => {
+        expect(details).to.deep.equal({ filename: '/foo/qux' });
+      });
+
+      return webfs.rename('/baz', '/foo/qux').then(checkEvent);
+    });
+
+    test('writeFile should notify recursive dir watcher', function() {
+      var checkEvent = waitForEvent(fooWatcher, 'change').then(details => {
+        expect(details).to.deep.equal({ filename: '/foo/qux' });
+      });
+
+      return webfs.writeFile('/foo/qux', 'qux').then(checkEvent);
+    });
+
+    test('rename file should notify recursive dir watcher', function() {
+      var checkEvent = waitForEvent(fooWatcher, 'change').then(details => {
+        expect(details).to.deep.equal({ filename: '/foo/qux' });
+      });
+
+      return webfs.writeFile('/baz/qux', 'qux')
+      .then(() => webfs.rename('/baz/qux', '/foo/qux'))
+      .then(checkEvent);
+    });
+
+    test('append should notify file and recursive dir watchers', function() {
+      var checkEvent = Promise.all([
+        waitForEvent(fooWatcher, 'change'),
+        waitForEvent(barWatcher, 'change')
+      ])
+      .then(results => {
+        expect(results[0]).to.deep.equal(results[1]);
+        expect(results[0]).to.deep.equal({ filename: '/foo/bar' });
+      });
+
+      return webfs.appendFile('/foo/bar', 'qux').then(checkEvent);
+    });
+
+    test('unlink should notify file and recursive dir watchers', function() {
+      var checkEvent = Promise.all([
+        waitForEvent(fooWatcher, 'change'),
+        waitForEvent(barWatcher, 'change')
+      ])
+      .then(results => {
+        expect(results[0]).to.deep.equal(results[1]);
+        expect(results[0]).to.deep.equal({ filename: '/foo/bar' });
+      });
+
+      return webfs.unlink('/foo/bar').then(checkEvent);
+    });
+
+    test('#close should stop watcher from firing', function() {
+      var check = Promise.race([
+        waitForEvent(barWatcher, 'change'),
+        new Promise(accept => setTimeout(accept, 1000, 'timeout'))
+      ])
+      .then(result => expect(result).to.equal('timeout'));
+
+      // the change event shouldn't be fired after closing
+      barWatcher.close();
+      webfs.unlink('/foo/bar').then(check);
+    });
+  });
 });
+
+function waitForEvent(emitter, eventType) {
+  return new Promise(accept => emitter.on(eventType, accept));
+}

@@ -2,6 +2,11 @@ var expect = require('chai').expect;
 var fspath = require('../../lib/fspath');
 
 suite('fspath', function() {
+  test('#contains', function() {
+    expect(fspath.contains('/path', '/path/to/exile')).to.equal(true);
+    expect(fspath.contains('/path', '/math/to/exile')).to.equal(false);
+  });
+
   test('#getDirectory', function() {
     expect(fspath.getDirectory('/path/to/exile')).to.equal('/path/to');
   });
