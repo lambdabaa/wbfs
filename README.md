@@ -1,18 +1,18 @@
-webfs
-=====
+wbfs
+====
 
 Implementation of a basic subset of node's fs v0.12 api for the web with
 some [caveats](#caveats).
 
-[![Build Status](https://travis-ci.org/gaye/webfs.png?branch=master)](https://travis-ci.org/gaye/webfs)
+[![Build Status](https://travis-ci.org/gaye/wbfs.png?branch=master)](https://travis-ci.org/gaye/wbfs)
 
-Run the integration tests [in your browser](https://gaye.github.io/webfs/test/integration/).
+Run the integration tests [in your browser](https://gaye.github.io/wbfs/test/integration/).
 
 ### Usage
 
 ```js
 var co = require('co');
-var fs = require('webfs');
+var fs = require('wbfs');
 
 co(function*() {
   yield fs.mkdir('/poems');
