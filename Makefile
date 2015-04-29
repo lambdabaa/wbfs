@@ -2,7 +2,7 @@ JS_FILES := $(shell find lib/ -name "*.js")
 NODE_VERSION := $(shell node -v)
 
 webfs.js: index.js $(JS_FILES) node_modules
-	./node_modules/.bin/browserify --standalone webfs index.js > webfs.js
+	./node_modules/.bin/browserify --standalone wbfs index.js > wbfs.js
 
 node_modules: package.json
 	npm install

@@ -1,6 +1,6 @@
 var expect = chai.expect;
 
-suite('webfs', function() {
+suite('wbfs', function() {
   setup(function(done) {
     var deleteDatabase = indexedDB.deleteDatabase('fs');
     deleteDatabase.onerror = () => done(new Error('Error deleting database'));
@@ -8,12 +8,12 @@ suite('webfs', function() {
   });
 
   teardown(function() {
-    return webfs.shutdown();
+    return wbfs.shutdown();
   });
 
   suite('#rename', function() {
     test('file does not exist', function() {
-      var request = webfs.rename('/foo.txt', '/bar.txt');
+      var request = wbfs.rename('/foo.txt', '/bar.txt');
       return expect(request).to.eventually.be.rejectedWith(
         Error,
         '/foo.txt: No such file or directory'
@@ -21,11 +21,11 @@ suite('webfs', function() {
     });
 
     test('simple file', function() {
-      return webfs.writeFile('/file.txt', 'yo')
-      .then(() => webfs.rename('/file.txt', '/yo.txt'))
-      .then(() => expect(webfs.readFile('/yo.txt')).to.eventually.equal('yo'))
+      return wbfs.writeFile('/file.txt', 'yo')
+      .then(() => wbfs.rename('/file.txt', '/yo.txt'))
+      .then(() => expect(wbfs.readFile('/yo.txt')).to.eventually.equal('yo'))
       .then(() => {
-        var request = webfs.readFile('/file.txt');
+        var request = wbfs.readFile('/file.txt');
         return expect(request).to.eventually.be.rejectedWith(
           Error,
           '/file.txt: No such file or directory'
@@ -34,11 +34,11 @@ suite('webfs', function() {
     });
 
     test('directory without children', function() {
-      return webfs.mkdir('/foo')
-      .then(() => webfs.rename('/foo', '/bar'))
-      .then(() => expect(webfs.readdir('/bar')).to.eventually.deep.equal([]))
+      return wbfs.mkdir('/foo')
+      .then(() => wbfs.rename('/foo', '/bar'))
+      .then(() => expect(wbfs.readdir('/bar')).to.eventually.deep.equal([]))
       .then(() => {
-        return expect(webfs.readdir('/foo')).to.eventually.be.rejectedWith(
+        return expect(wbfs.readdir('/foo')).to.eventually.be.rejectedWith(
           Error,
           '/foo: No such file or directory'
         );
@@ -46,18 +46,18 @@ suite('webfs', function() {
     });
 
     test('directory with children', function() {
-      return webfs.mkdir('/foo')
-      .then(() => webfs.writeFile('/foo/bar.txt', 'bar'))
-      .then(() => webfs.writeFile('/foo/baz.txt', 'baz'))
-      .then(() => webfs.rename('/foo', '/foo2'))
+      return wbfs.mkdir('/foo')
+      .then(() => wbfs.writeFile('/foo/bar.txt', 'bar'))
+      .then(() => wbfs.writeFile('/foo/baz.txt', 'baz'))
+      .then(() => wbfs.rename('/foo', '/foo2'))
       .then(() => {
-        return expect(webfs.readdir('/foo2')).to.eventually.deep.equal([
+        return expect(wbfs.readdir('/foo2')).to.eventually.deep.equal([
           'bar.txt',
           'baz.txt'
         ]);
       })
       .then(() => {
-        return expect(webfs.readdir('/foo')).to.be.rejectedWith(
+        return expect(wbfs.readdir('/foo')).to.be.rejectedWith(
           Error,
           '/foo: No such file or directory'
         );
@@ -67,10 +67,10 @@ suite('webfs', function() {
 
   suite('#unlink', function() {
     test('file', function() {
-      return webfs.writeFile('/foo.txt', 'bar')
-      .then(() => webfs.unlink('/foo.txt'))
+      return wbfs.writeFile('/foo.txt', 'bar')
+      .then(() => wbfs.unlink('/foo.txt'))
       .then(() => {
-        return expect(webfs.readFile('/foo.txt')).to.eventually.be.rejectedWith(
+        return expect(wbfs.readFile('/foo.txt')).to.eventually.be.rejectedWith(
           Error,
           '/foo.txt: No such file or directory'
         );
@@ -78,8 +78,8 @@ suite('webfs', function() {
     });
 
     test('dir', function() {
-      return webfs.mkdir('/foo').then(() => {
-        return expect(webfs.unlink('/foo')).to.be.rejectedWith(
+      return wbfs.mkdir('/foo').then(() => {
+        return expect(wbfs.unlink('/foo')).to.be.rejectedWith(
           Error,
           'Cannot remove /foo: Is a directory'
         );
@@ -89,8 +89,8 @@ suite('webfs', function() {
 
   suite('#rmdir', function() {
     test('file', function() {
-      return webfs.writeFile('/foo', 'bar').then(() => {
-        return expect(webfs.rmdir('/foo')).to.be.rejectedWith(
+      return wbfs.writeFile('/foo', 'bar').then(() => {
+        return expect(wbfs.rmdir('/foo')).to.be.rejectedWith(
           Error,
           'Cannot remove /foo: Not a directory'
         );
@@ -98,10 +98,10 @@ suite('webfs', function() {
     });
 
     test('dir', function() {
-      return webfs.mkdir('/foo')
-      .then(() => webfs.rmdir('/foo'))
+      return wbfs.mkdir('/foo')
+      .then(() => wbfs.rmdir('/foo'))
       .then(() => {
-        return expect(webfs.readdir('/foo')).to.be.rejectedWith(
+        return expect(wbfs.readdir('/foo')).to.be.rejectedWith(
           Error,
           '/foo: No such file or directory'
         );
@@ -109,10 +109,10 @@ suite('webfs', function() {
     });
 
     test('nonempty dir', function() {
-      return webfs.mkdir('/foo')
-      .then(() => webfs.writeFile('/foo/bar.txt', 'baz'))
+      return wbfs.mkdir('/foo')
+      .then(() => wbfs.writeFile('/foo/bar.txt', 'baz'))
       .then(() => {
-        return expect(webfs.rmdir('/foo')).to.be.rejectedWith(
+        return expect(wbfs.rmdir('/foo')).to.be.rejectedWith(
           Error,
           'Cannot remove /foo: Directory not empty'
         );
@@ -122,8 +122,8 @@ suite('webfs', function() {
 
   suite('#mkdir', function() {
     test('file already exists', function() {
-      return webfs.writeFile('/foo', 'bar').then(() => {
-        return expect(webfs.mkdir('/foo')).to.be.rejectedWith(
+      return wbfs.writeFile('/foo', 'bar').then(() => {
+        return expect(wbfs.mkdir('/foo')).to.be.rejectedWith(
           Error,
           'Cannot create directory /foo: File exists'
         );
@@ -131,7 +131,7 @@ suite('webfs', function() {
     });
 
     test('should not allow making dir if parent does not exist', function() {
-      var request = webfs.mkdir('/foo/bar.txt', 'baz');
+      var request = wbfs.mkdir('/foo/bar.txt', 'baz');
       return expect(request).to.eventually.be.rejectedWith(
         Error,
         '/foo: No such file or directory'
@@ -139,8 +139,8 @@ suite('webfs', function() {
     });
 
     test('should not allow making dir beneath file', function() {
-      return webfs.writeFile('/foo', '0').then(() => {
-        var request = webfs.mkdir('/foo/bar');
+      return wbfs.writeFile('/foo', '0').then(() => {
+        var request = wbfs.mkdir('/foo/bar');
         return expect(request).to.eventually.be.rejectedWith(
           Error,
           '/foo: Not a directory'
@@ -151,16 +151,16 @@ suite('webfs', function() {
 
   suite('#readdir', function() {
     test('directory does not exist', function() {
-      return expect(webfs.readdir('/random')).to.eventually.be.rejectedWith(
+      return expect(wbfs.readdir('/random')).to.eventually.be.rejectedWith(
         Error,
         '/random: No such file or directory'
       );
     });
 
     test('on file', function() {
-      return webfs.writeFile('/file.txt', 'yo')
+      return wbfs.writeFile('/file.txt', 'yo')
       .then(() => {
-        return expect(webfs.readdir('/file.txt')).to.eventually.be.rejectedWith(
+        return expect(wbfs.readdir('/file.txt')).to.eventually.be.rejectedWith(
           Error,
           '/file.txt: Not a directory'
         );
@@ -168,15 +168,15 @@ suite('webfs', function() {
     });
 
     test('empty directory', function() {
-      return expect(webfs.readdir('/')).to.eventually.deep.equal([]);
+      return expect(wbfs.readdir('/')).to.eventually.deep.equal([]);
     });
 
     test('multiple files', function() {
       // TODO(gareth): Concurrent writing does not seem to work here.
-      return webfs.writeFile('/file1.txt', 'foo')
-      .then(() => webfs.writeFile('/file2.txt', 'bar'))
+      return wbfs.writeFile('/file1.txt', 'foo')
+      .then(() => wbfs.writeFile('/file2.txt', 'bar'))
       .then(() => {
-        return expect(webfs.readdir('/')).to.eventually.deep.equal([
+        return expect(wbfs.readdir('/')).to.eventually.deep.equal([
           'file1.txt',
           'file2.txt'
         ]);
@@ -186,14 +186,14 @@ suite('webfs', function() {
 
   suite('#readFile', function() {
     test('file does not exist', function() {
-      return expect(webfs.readFile('/foo.txt')).to.eventually.be.rejectedWith(
+      return expect(wbfs.readFile('/foo.txt')).to.eventually.be.rejectedWith(
         Error,
         '/foo.txt: No such file or directory'
       );
     });
 
     test('on directory', function() {
-      return expect(webfs.readFile('/')).to.eventually.be.rejectedWith(
+      return expect(wbfs.readFile('/')).to.eventually.be.rejectedWith(
         Error,
         '/: Is a directory'
       );
@@ -202,8 +202,8 @@ suite('webfs', function() {
 
   suite('#writeFile', function() {
     test('should not allow overwriting a directory', function() {
-      return webfs.mkdir('/foo').then(() => {
-        var request = webfs.writeFile('/foo', 'foobar');
+      return wbfs.mkdir('/foo').then(() => {
+        var request = wbfs.writeFile('/foo', 'foobar');
         return expect(request).to.eventually.be.rejectedWith(
           Error,
           '/foo: Is a directory'
@@ -212,7 +212,7 @@ suite('webfs', function() {
     });
 
     test('should not allow writing file to non-existing dir', function() {
-      var request = webfs.writeFile('/foo/bar.txt', 'baz');
+      var request = wbfs.writeFile('/foo/bar.txt', 'baz');
       return expect(request).to.eventually.be.rejectedWith(
         Error,
         '/foo: No such file or directory'
@@ -220,8 +220,8 @@ suite('webfs', function() {
     });
 
     test('should not allow writing file beneath file', function() {
-      return webfs.writeFile('/foo', '0').then(() => {
-        var request = webfs.writeFile('/foo/bar', '1');
+      return wbfs.writeFile('/foo', '0').then(() => {
+        var request = wbfs.writeFile('/foo/bar', '1');
         return expect(request).to.eventually.be.rejectedWith(
           Error,
           '/foo: Not a directory'
@@ -231,29 +231,29 @@ suite('webfs', function() {
 
     test('should add the appropriate node to indexeddb', function() {
       var filename = '/file.txt';
-      return webfs.writeFile(filename, 'foo')
-      .then(() => expect(webfs.readFile(filename)).to.eventually.equal('foo'));
+      return wbfs.writeFile(filename, 'foo')
+      .then(() => expect(wbfs.readFile(filename)).to.eventually.equal('foo'));
     });
 
     test('should overwrite existing data', function() {
       var filename = '/file.txt';
-      return webfs.writeFile(filename, 'foo')
-      .then(() => webfs.writeFile(filename, 'bar'))
-      .then(() => expect(webfs.readFile(filename)).to.eventually.equal('bar'));
+      return wbfs.writeFile(filename, 'foo')
+      .then(() => wbfs.writeFile(filename, 'bar'))
+      .then(() => expect(wbfs.readFile(filename)).to.eventually.equal('bar'));
     });
   });
 
   suite('#appendFile', function() {
     test('should create file if does not exist', function() {
-      return webfs.appendFile('/file.txt', 'foo').then(() => {
-        return expect(webfs.readFile('/file.txt')).to.eventually.equal('foo');
+      return wbfs.appendFile('/file.txt', 'foo').then(() => {
+        return expect(wbfs.readFile('/file.txt')).to.eventually.equal('foo');
       });
     });
 
     test('should append to file if already exists', function() {
-      return webfs.writeFile('/file.txt', 'foo')
-      .then(() => webfs.appendFile('/file.txt', 'bar'))
-      .then(() => expect(webfs.readFile('/file.txt')).to.eventually.equal('foobar'));
+      return wbfs.writeFile('/file.txt', 'foo')
+      .then(() => wbfs.appendFile('/file.txt', 'bar'))
+      .then(() => expect(wbfs.readFile('/file.txt')).to.eventually.equal('foobar'));
     });
   });
 
@@ -261,13 +261,13 @@ suite('webfs', function() {
     var fooWatcher, barWatcher, bazWatcher;
 
     setup(function() {
-      return webfs.mkdir('/foo')
-      .then(() => webfs.writeFile('/foo/bar', 'bar'))
-      .then(() => webfs.mkdir('/baz'))
+      return wbfs.mkdir('/foo')
+      .then(() => wbfs.writeFile('/foo/bar', 'bar'))
+      .then(() => wbfs.mkdir('/baz'))
       .then(() => {
-        fooWatcher = webfs.watch('/foo', { recursive: true });
-        barWatcher = webfs.watch('/foo/bar');
-        bazWatcher = webfs.watch('/baz');
+        fooWatcher = wbfs.watch('/foo', { recursive: true });
+        barWatcher = wbfs.watch('/foo/bar');
+        bazWatcher = wbfs.watch('/baz');
       });
     });
 
@@ -277,8 +277,8 @@ suite('webfs', function() {
       bazWatcher.close();
     });
 
-    test('should return a webfs.FSWatcher', function() {
-      expect(fooWatcher).to.be.instanceOf(webfs.FSWatcher);
+    test('should return a wbfs.FSWatcher', function() {
+      expect(fooWatcher).to.be.instanceOf(wbfs.FSWatcher);
     });
 
     test('rmdir should notify dir watcher', function() {
@@ -286,7 +286,7 @@ suite('webfs', function() {
         expect(details).to.deep.equal({ filename: '/baz' });
       });
 
-      return webfs.rmdir('/baz').then(checkEvent);
+      return wbfs.rmdir('/baz').then(checkEvent);
     });
 
     test('rename should notify dir watchers', function() {
@@ -294,7 +294,7 @@ suite('webfs', function() {
         expect(details).to.deep.equal({ oldName: '/baz', newName: '/qux' });
       });
 
-      return webfs.rename('/baz', '/qux').then(checkEvent);
+      return wbfs.rename('/baz', '/qux').then(checkEvent);
     });
 
     test('rename should notify file and recursive dir watchers', function() {
@@ -310,7 +310,7 @@ suite('webfs', function() {
         });
       });
 
-      return webfs.rename('/foo/bar', '/foo/qux').then(checkEvent);
+      return wbfs.rename('/foo/bar', '/foo/qux').then(checkEvent);
     });
 
     test('mkdir should notify recursive dir watcher', function() {
@@ -318,7 +318,7 @@ suite('webfs', function() {
         expect(details).to.deep.equal({ filename: '/foo/qux' });
       });
 
-      return webfs.mkdir('/foo/qux').then(checkEvent);
+      return wbfs.mkdir('/foo/qux').then(checkEvent);
     });
 
     test('rename dir should notify recursive dir watcher', function() {
@@ -326,7 +326,7 @@ suite('webfs', function() {
         expect(details).to.deep.equal({ filename: '/foo/qux' });
       });
 
-      return webfs.rename('/baz', '/foo/qux').then(checkEvent);
+      return wbfs.rename('/baz', '/foo/qux').then(checkEvent);
     });
 
     test('writeFile should notify recursive dir watcher', function() {
@@ -334,7 +334,7 @@ suite('webfs', function() {
         expect(details).to.deep.equal({ filename: '/foo/qux' });
       });
 
-      return webfs.writeFile('/foo/qux', 'qux').then(checkEvent);
+      return wbfs.writeFile('/foo/qux', 'qux').then(checkEvent);
     });
 
     test('rename file should notify recursive dir watcher', function() {
@@ -342,8 +342,8 @@ suite('webfs', function() {
         expect(details).to.deep.equal({ filename: '/foo/qux' });
       });
 
-      return webfs.writeFile('/baz/qux', 'qux')
-      .then(() => webfs.rename('/baz/qux', '/foo/qux'))
+      return wbfs.writeFile('/baz/qux', 'qux')
+      .then(() => wbfs.rename('/baz/qux', '/foo/qux'))
       .then(checkEvent);
     });
 
@@ -357,7 +357,7 @@ suite('webfs', function() {
         expect(results[0]).to.deep.equal({ filename: '/foo/bar' });
       });
 
-      return webfs.appendFile('/foo/bar', 'qux').then(checkEvent);
+      return wbfs.appendFile('/foo/bar', 'qux').then(checkEvent);
     });
 
     test('unlink should notify file and recursive dir watchers', function() {
@@ -370,7 +370,7 @@ suite('webfs', function() {
         expect(results[0]).to.deep.equal({ filename: '/foo/bar' });
       });
 
-      return webfs.unlink('/foo/bar').then(checkEvent);
+      return wbfs.unlink('/foo/bar').then(checkEvent);
     });
 
     test('#close should stop watcher from firing', function() {
@@ -382,7 +382,7 @@ suite('webfs', function() {
 
       // the change event shouldn't be fired after closing
       barWatcher.close();
-      webfs.unlink('/foo/bar').then(check);
+      wbfs.unlink('/foo/bar').then(check);
     });
   });
 });
