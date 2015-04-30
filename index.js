@@ -18,7 +18,7 @@ for (var key in fs) {
         return target.apply(thisArg, args);
       }
 
-      return co(function*() {
+      return co(function *() {
         yield idb.open();
         return target.apply(thisArg, args);
       });
