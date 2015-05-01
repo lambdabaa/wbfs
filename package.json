@@ -1,6 +1,6 @@
 {
   "name": "wbfs",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": "Gareth Aye [:gaye] <gaye@mozilla.com>",
   "description": "Implementation of node's fs v0.12 api for the web",
   "license": "MPL-2.0",
